@@ -17,4 +17,8 @@
     <string name="total_balance">Saldo Total: %s</string>
     <string name="no_entries">Nenhuma entrada encontrada.</string>
     <string name="back">Voltar</string>
+    <string name="delete">Excluir</string>
+    <string name="delete_entry_title">Excluir Entrada</string>
+    <string name="delete_entry_confirmation">Tem certeza que deseja excluir esta entrada?</string>
+    <string name="entry_deleted_success">Entrada excluída com sucesso!</string>
 </resources>

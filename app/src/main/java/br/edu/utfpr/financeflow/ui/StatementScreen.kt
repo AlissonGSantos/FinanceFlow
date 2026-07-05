@@ -1,11 +1,13 @@
 package br.edu.utfpr.financeflow.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,7 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -28,13 +32,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,8 +65,10 @@ import br.edu.utfpr.financeflow.ui.theme.ExpenseColor
 import br.edu.utfpr.financeflow.ui.theme.ExpenseContainerColor
 import br.edu.utfpr.financeflow.ui.theme.IncomeColor
 import br.edu.utfpr.financeflow.ui.theme.IncomeContainerColor
+import br.edu.utfpr.financeflow.viewmodel.StatementUiEvent
 import br.edu.utfpr.financeflow.viewmodel.StatementViewModel
 import br.edu.utfpr.financeflow.viewmodel.StatementViewModelFactory
+import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -62,6 +81,32 @@ fun StatementScreen(
     val context = LocalContext.current
     val repository = (context.applicationContext as FinanceFlowApplication).repository
     val viewModel: StatementViewModel = viewModel(factory = StatementViewModelFactory(repository))
+    val snackbarHostState = remember { SnackbarHostState() }
+    val entryDeletedMessage = stringResource(R.string.entry_deleted_success)
+
+    var entryToDelete by remember { mutableStateOf<Entry?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is StatementUiEvent.EntryDeleted -> {
+                    snackbarHostState.showSnackbar(entryDeletedMessage)
+                }
+            }
+        }
+    }
+
+    if (entryToDelete != null) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                entryToDelete?.let { viewModel.deleteEntry(it.id) }
+                entryToDelete = null
+            },
+            onDismiss = {
+                entryToDelete = null
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -86,7 +131,8 @@ fun StatementScreen(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -123,8 +169,11 @@ fun StatementScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(viewModel.entries) { entry ->
-                        EntryItem(entry)
+                    items(viewModel.entries, key = { it.id }) { entry ->
+                        EntryItemWrapper(
+                            entry = entry,
+                            onDelete = { entryToDelete = it }
+                        )
                     }
                 }
             }
@@ -142,7 +191,7 @@ fun BalanceHeader(balance: Double) {
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -155,7 +204,7 @@ fun BalanceHeader(balance: Double) {
             Text(
                 text = "Saldo Atual",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = currencyFormat.format(balance),
@@ -165,6 +214,77 @@ fun BalanceHeader(balance: Double) {
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EntryItemWrapper(
+    entry: Entry,
+    onDelete: (Entry) -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onDelete(entry)
+            }
+            false // Always return false to keep the item in place until confirmed/deleted
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = { DismissBackground(dismissState) },
+        enableDismissFromStartToEnd = false
+    ) {
+        EntryItem(entry)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DismissBackground(dismissState: SwipeToDismissBoxState) {
+    val color = when (dismissState.dismissDirection) {
+        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+        else -> Color.Transparent
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color, shape = MaterialTheme.shapes.medium)
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.delete),
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
+        }
+    }
+}
+
+@Composable
+fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete_entry_title)) },
+        text = { Text(stringResource(R.string.delete_entry_confirmation)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
 
 @Composable

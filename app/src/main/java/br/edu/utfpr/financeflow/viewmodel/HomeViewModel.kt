@@ -91,9 +91,6 @@ class HomeViewModel(private val repository: EntryRepository) : ViewModel() {
     fun saveEntry() {
         isDescriptionValid = description.isNotBlank()
         isAmountValid = amount.isNotBlank()
-        // If dateString length != 8 and not empty, it might be in middle of typing or invalid
-        // But the current logic sets isDateValid in onDateStringChange.
-        // Let's ensure isDateValid is also checked if it's incomplete.
         if (dateString.length != 8) {
             isDateValid = false
         }
@@ -111,8 +108,6 @@ class HomeViewModel(private val repository: EntryRepository) : ViewModel() {
             repository.insertEntry(entry)
             description = ""
             amount = ""
-            // Reset date to today or keep it? Usually better to keep it or reset it.
-            // Requirement says "clear fields", so let's reset description and amount as done before.
             _uiEvent.emit(HomeUiEvent.EntrySaved)
         }
     }

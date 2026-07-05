@@ -31,12 +31,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,8 +57,10 @@ import br.edu.utfpr.financeflow.ui.theme.IncomeColor
 import br.edu.utfpr.financeflow.ui.theme.IncomeContainerColor
 import br.edu.utfpr.financeflow.utils.CurrencyVisualTransformation
 import br.edu.utfpr.financeflow.utils.DateVisualTransformation
+import br.edu.utfpr.financeflow.viewmodel.HomeUiEvent
 import br.edu.utfpr.financeflow.viewmodel.HomeViewModel
 import br.edu.utfpr.financeflow.viewmodel.HomeViewModelFactory
+import kotlinx.coroutines.flow.collectLatest
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -68,6 +74,18 @@ fun HomeScreen(
     val context = LocalContext.current
     val repository = (context.applicationContext as FinanceFlowApplication).repository
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(repository))
+    val snackbarHostState = remember { SnackbarHostState() }
+    val entrySavedMessage = stringResource(R.string.entry_saved_success)
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is HomeUiEvent.EntrySaved -> {
+                    snackbarHostState.showSnackbar(entrySavedMessage)
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,7 +99,9 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             )
-        }) { innerPadding ->
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { innerPadding ->
         Column(
             modifier = modifier
                 .padding(innerPadding)
@@ -110,6 +130,15 @@ fun HomeScreen(
                         label = { Text(stringResource(R.string.description)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        isError = !viewModel.isDescriptionValid,
+                        supportingText = {
+                            if (!viewModel.isDescriptionValid) {
+                                Text(
+                                    text = stringResource(R.string.description_required),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Description, contentDescription = null
@@ -124,6 +153,15 @@ fun HomeScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         visualTransformation = CurrencyVisualTransformation(),
+                        isError = !viewModel.isAmountValid,
+                        supportingText = {
+                            if (!viewModel.isAmountValid) {
+                                Text(
+                                    text = stringResource(R.string.amount_required),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.AttachMoney, contentDescription = null

@@ -18,8 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -97,43 +97,34 @@ fun StatementScreen(
     }
 
     if (entryToDelete != null) {
-        DeleteConfirmationDialog(
-            onConfirm = {
-                entryToDelete?.let { viewModel.deleteEntry(it.id) }
-                entryToDelete = null
-            },
-            onDismiss = {
-                entryToDelete = null
-            }
-        )
+        DeleteConfirmationDialog(onConfirm = {
+            entryToDelete?.let { viewModel.deleteEntry(it.id) }
+            entryToDelete = null
+        }, onDismiss = {
+            entryToDelete = null
+        })
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.statement),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    Scaffold(topBar = {
+        TopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.statement), fontWeight = FontWeight.Bold
                 )
+            }, navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            }, colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { innerPadding ->
+        )
+    }, snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -153,8 +144,7 @@ fun StatementScreen(
 
                 if (viewModel.entries.isEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
@@ -179,9 +169,7 @@ fun StatementScreen(
                     ) {
                         items(viewModel.entries, key = { it.id }) { entry ->
                             EntryItemWrapper(
-                                entry = entry,
-                                onDelete = { entryToDelete = it }
-                            )
+                                entry = entry, onDelete = { entryToDelete = it })
                         }
                     }
                 }
@@ -198,11 +186,9 @@ fun BalanceHeader(balance: Double) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
+            .padding(16.dp), colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -228,18 +214,15 @@ fun BalanceHeader(balance: Double) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryItemWrapper(
-    entry: Entry,
-    onDelete: (Entry) -> Unit
+    entry: Entry, onDelete: (Entry) -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
-        initialValue = SwipeToDismissBoxValue.Settled,
-        confirmValueChange = {
+        initialValue = SwipeToDismissBoxValue.Settled, confirmValueChange = {
             if (it == SwipeToDismissBoxValue.EndToStart) {
                 onDelete(entry)
             }
             false
-        }
-    )
+        })
 
     SwipeToDismissBox(
         state = dismissState,
@@ -262,8 +245,7 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         modifier = Modifier
             .fillMaxSize()
             .background(color, shape = MaterialTheme.shapes.medium)
-            .padding(horizontal = 20.dp),
-        contentAlignment = Alignment.CenterEnd
+            .padding(horizontal = 20.dp), contentAlignment = Alignment.CenterEnd
     ) {
         if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
             Icon(
@@ -277,8 +259,7 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
 @Composable
 fun DeleteConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -293,8 +274,7 @@ fun DeleteConfirmationDialog(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))
             }
-        }
-    )
+        })
 }
 
 @Composable
@@ -304,12 +284,12 @@ fun EntryItem(entry: Entry) {
     val isIncome = entry.type == EntryType.INCOME
     val color = if (isIncome) IncomeColor else ExpenseColor
     val containerColor = if (isIncome) IncomeContainerColor else ExpenseContainerColor
-    val icon = if (isIncome) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+    val icon =
+        if (isIncome) Icons.AutoMirrored.Rounded.TrendingUp else Icons.AutoMirrored.Rounded.TrendingDown
     val prefix = if (isIncome) "+" else "-"
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium
+        modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -319,7 +299,7 @@ fun EntryItem(entry: Entry) {
         ) {
             Surface(
                 shape = CircleShape,
-                color = containerColor.copy(alpha = 0.3f),
+                color = containerColor.copy(alpha = 0.1f),
                 modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -342,7 +322,7 @@ fun EntryItem(entry: Entry) {
                 )
                 Text(
                     text = entry.date.format(dateFormatter),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

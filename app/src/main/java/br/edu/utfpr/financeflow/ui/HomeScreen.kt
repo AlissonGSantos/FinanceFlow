@@ -47,6 +47,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import br.edu.utfpr.financeflow.FinanceFlowApplication
 import br.edu.utfpr.financeflow.R
 import br.edu.utfpr.financeflow.model.EntryType
+import br.edu.utfpr.financeflow.ui.theme.ExpenseColor
+import br.edu.utfpr.financeflow.ui.theme.ExpenseContainerColor
+import br.edu.utfpr.financeflow.ui.theme.IncomeColor
+import br.edu.utfpr.financeflow.ui.theme.IncomeContainerColor
 import br.edu.utfpr.financeflow.utils.CurrencyVisualTransformation
 import br.edu.utfpr.financeflow.utils.DateVisualTransformation
 import br.edu.utfpr.financeflow.viewmodel.HomeViewModel
@@ -150,6 +154,11 @@ fun HomeScreen(
                                     contentDescription = stringResource(R.string.select_date)
                                 )
                             }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.CalendarToday, contentDescription = null
+                            )
                         })
 
                     Text(
@@ -167,7 +176,11 @@ fun HomeScreen(
                                     index = index, count = EntryType.entries.size
                                 ),
                                 onClick = { viewModel.onEntryTypeChange(entryType) },
-                                selected = entryType == viewModel.entryType
+                                selected = entryType == viewModel.entryType,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = if (entryType == EntryType.INCOME) IncomeContainerColor else ExpenseContainerColor,
+                                    activeContentColor = if (entryType == EntryType.INCOME) IncomeColor else ExpenseColor
+                                )
                             ) {
                                 Text(stringResource(entryType.label))
                             }

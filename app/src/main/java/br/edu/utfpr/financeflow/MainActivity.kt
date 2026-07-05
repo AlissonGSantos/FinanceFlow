@@ -37,7 +37,9 @@ class MainActivity : ComponentActivity() {
                             })
                         }
                         composable("statement") {
-                            StatementScreen()
+                            StatementScreen(onNavigateBack = {
+                                navController.popBackStack()
+                            })
                         }
                     }
                 }

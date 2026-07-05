@@ -16,12 +16,9 @@ class CurrencyVisualTransformation(
     override fun filter(text: AnnotatedString): TransformedText {
         val originalText = text.text
 
-        // Se estiver vazio, formata como zero
         val cents = originalText.toLongOrNull() ?: 0L
         val formattedText = currencyFormatter.format(cents / 100.0)
 
-        // Mapeamento de cursor simples: mantém o cursor sempre no final do texto
-        // para evitar comportamentos estranhos ao tentar editar o meio da moeda
         val currencyOffsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int = formattedText.length
             override fun transformedToOriginal(offset: Int): Int = originalText.length

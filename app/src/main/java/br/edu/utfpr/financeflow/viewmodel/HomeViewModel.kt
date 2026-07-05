@@ -6,10 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import android.util.Log
+import br.edu.utfpr.financeflow.model.EntryType
+import java.util.Locale
 
 class HomeViewModel : ViewModel() {
-    private val dateFormatter = DateTimeFormatter.ofPattern("ddMMyyyy")
-
+    private val dateFormatter = DateTimeFormatter.ofPattern("ddMMyyyy", Locale.getDefault())
     var description by mutableStateOf("")
         private set
     var amount by mutableStateOf("")
@@ -17,6 +20,12 @@ class HomeViewModel : ViewModel() {
     var date: LocalDate by mutableStateOf(LocalDate.now())
         private set
     var dateString: String by mutableStateOf(date.format(dateFormatter))
+        private set
+    var showDatePicker by mutableStateOf(false)
+        private set
+    var isDateValid by mutableStateOf(true)
+        private set
+    var entryType: EntryType by mutableStateOf(EntryType.INCOME)
         private set
 
     fun onDescriptionChange(newDescription: String) {
@@ -30,7 +39,18 @@ class HomeViewModel : ViewModel() {
     fun onDateChange(newDate: LocalDate) {
         date = newDate
         dateString = newDate.format(dateFormatter)
+        isDateValid = true
     }
+
+    fun onShowDatePickerChange(show: Boolean) {
+        showDatePicker = show
+    }
+
+
+    fun onEntryTypeChange(newEntryType: EntryType) {
+        entryType = newEntryType
+    }
+
 
     fun onDateStringChange(newDateString: String) {
         val digitsOnly = newDateString.filter { it.isDigit() }
@@ -39,9 +59,13 @@ class HomeViewModel : ViewModel() {
             if (digitsOnly.length == 8) {
                 try {
                     date = LocalDate.parse(digitsOnly, dateFormatter)
-                } catch (e: Exception) {
-                    // Data inválida, pode-se tratar o erro aqui futuramente
+                    isDateValid = true
+                } catch (e: DateTimeParseException) {
+                    Log.e("HomeViewModel", "Error parsing date: $digitsOnly", e)
+                    isDateValid = false
                 }
+            } else {
+                isDateValid = true
             }
         }
     }

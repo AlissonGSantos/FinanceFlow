@@ -1,11 +1,13 @@
 package br.edu.utfpr.financeflow.model
 
+import androidx.annotation.StringRes
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import br.edu.utfpr.financeflow.R
 import java.time.LocalDate
 
 @Entity(tableName = "entries")
@@ -17,10 +19,11 @@ data class Entry(
     val type: EntryType
 )
 
-enum class EntryType {
-    INCOME,
-    EXPENSE
+enum class EntryType(@StringRes val label: Int) {
+    INCOME(R.string.income),
+    EXPENSE(R.string.expense)
 }
+
 
 @Dao
 interface EntryDao {

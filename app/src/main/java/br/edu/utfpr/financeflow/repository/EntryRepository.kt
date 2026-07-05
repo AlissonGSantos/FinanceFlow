@@ -19,4 +19,8 @@ class EntryRepository(private val entryDao: EntryDao) {
         entryDao.deleteEntry(entryId)
     }
 
+    suspend fun getBalance(): Double = withContext(Dispatchers.IO) {
+        entryDao.getBalance()
+    }
+
 }

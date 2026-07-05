@@ -13,10 +13,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.rounded.AttachMoney
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.EditCalendar
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -141,7 +142,7 @@ fun HomeScreen(
                         },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.Description, contentDescription = null
+                                Icons.Rounded.Description, contentDescription = null
                             )
                         })
 
@@ -164,7 +165,7 @@ fun HomeScreen(
                         },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.AttachMoney, contentDescription = null
+                                Icons.Rounded.AttachMoney, contentDescription = null
                             )
                         })
 
@@ -188,14 +189,14 @@ fun HomeScreen(
                         trailingIcon = {
                             IconButton(onClick = { viewModel.onShowDatePickerChange(true) }) {
                                 Icon(
-                                    imageVector = Icons.Default.CalendarToday,
+                                    imageVector = Icons.Rounded.EditCalendar,
                                     contentDescription = stringResource(R.string.select_date)
                                 )
                             }
                         },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.CalendarToday, contentDescription = null
+                                Icons.Rounded.CalendarToday, contentDescription = null
                             )
                         })
 
@@ -243,7 +244,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Icon(Icons.Default.Save, contentDescription = null)
+                Icon(Icons.Rounded.Save, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.save), style = MaterialTheme.typography.titleMedium)
             }

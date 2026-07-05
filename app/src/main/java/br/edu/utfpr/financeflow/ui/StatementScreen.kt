@@ -20,8 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.TrendingDown
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -148,7 +148,7 @@ fun StatementScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                imageVector = Icons.Default.Info,
+                                imageVector = Icons.Rounded.Info,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
                                 tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
@@ -249,7 +249,7 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
     ) {
         if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Icons.Rounded.Delete,
                 contentDescription = stringResource(R.string.delete),
                 tint = MaterialTheme.colorScheme.onErrorContainer
             )

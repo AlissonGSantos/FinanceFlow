@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
@@ -25,13 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.utfpr.financeflow.FinanceFlowApplication
 import br.edu.utfpr.financeflow.R
 import br.edu.utfpr.financeflow.model.EntryType
 import br.edu.utfpr.financeflow.utils.CurrencyVisualTransformation
 import br.edu.utfpr.financeflow.utils.DateVisualTransformation
 import br.edu.utfpr.financeflow.viewmodel.HomeViewModel
+import br.edu.utfpr.financeflow.viewmodel.HomeViewModelFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -39,9 +43,11 @@ import java.time.ZoneId
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel(),
     onNavigateToStatement: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val repository = (context.applicationContext as FinanceFlowApplication).repository
+    val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(repository))
     Column(modifier = modifier) {
 
         OutlinedTextField(
@@ -80,7 +86,8 @@ fun HomeScreen(
             supportingText = {
                 if (!viewModel.isDateValid) {
                     Text(
-                        text = stringResource(R.string.invalid_date), color = MaterialTheme.colorScheme.error
+                        text = stringResource(R.string.invalid_date),
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             },
@@ -116,8 +123,7 @@ fun HomeScreen(
                 ) {
                     RadioButton(
                         selected = (entryType == viewModel.entryType),
-                        onClick = { viewModel.onEntryTypeChange(entryType) }
-                    )
+                        onClick = { viewModel.onEntryTypeChange(entryType) })
                     Text(
                         text = stringResource(entryType.label),
                         style = MaterialTheme.typography.bodyLarge,
@@ -129,9 +135,18 @@ fun HomeScreen(
         }
 
         Button(
-            onClick = onNavigateToStatement, modifier = modifier
+            onClick = { viewModel.saveEntry() }, modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+        ) {
+            Text(stringResource(R.string.save))
+        }
+
+        Button(
+            onClick = onNavigateToStatement, modifier = modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary)
         ) {
             Text(stringResource(R.string.statement))
         }

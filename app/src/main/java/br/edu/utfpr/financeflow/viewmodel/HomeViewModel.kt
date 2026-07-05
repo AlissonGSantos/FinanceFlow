@@ -1,17 +1,20 @@
 package br.edu.utfpr.financeflow.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.financeflow.model.Entry
+import br.edu.utfpr.financeflow.model.EntryType
+import br.edu.utfpr.financeflow.repository.EntryRepository
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import android.util.Log
-import br.edu.utfpr.financeflow.model.EntryType
 import java.util.Locale
-
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val repository: EntryRepository) : ViewModel() {
     private val dateFormatter = DateTimeFormatter.ofPattern("ddMMyyyy", Locale.getDefault())
     var description by mutableStateOf("")
         private set
@@ -27,6 +30,7 @@ class HomeViewModel : ViewModel() {
         private set
     var entryType: EntryType by mutableStateOf(EntryType.INCOME)
         private set
+
 
     fun onDescriptionChange(newDescription: String) {
         description = newDescription
@@ -46,11 +50,9 @@ class HomeViewModel : ViewModel() {
         showDatePicker = show
     }
 
-
     fun onEntryTypeChange(newEntryType: EntryType) {
         entryType = newEntryType
     }
-
 
     fun onDateStringChange(newDateString: String) {
         val digitsOnly = newDateString.filter { it.isDigit() }
@@ -71,6 +73,19 @@ class HomeViewModel : ViewModel() {
     }
 
     fun saveEntry() {
-        // Lógica para salvar a entrada no banco de dados
+        if (description.isBlank() || amount.isBlank() || !isDateValid) return
+
+        val entry = Entry(
+            amount = amount.toDouble() / 100.0,
+            description = description,
+            date = date,
+            type = entryType
+        )
+
+        viewModelScope.launch {
+            repository.insertEntry(entry)
+            description = ""
+            amount = ""
+        }
     }
 }

@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import java.sql.Date
+import java.util.Date
 
 @Entity(tableName = "entries")
 data class Entry(
@@ -32,4 +32,7 @@ interface EntryDao {
 
     @Query("DELETE FROM entries WHERE id = :entryId")
     fun deleteEntry(entryId: Int)
+
+    @Query("SELECT SUM(amount) FROM entries")
+    fun getBalance()
 }

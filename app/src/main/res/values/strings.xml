@@ -14,7 +14,7 @@
     <string name="entry_saved_success">Entrada salva com sucesso!</string>
     <string name="description_required">Descrição é obrigatória</string>
     <string name="amount_required">Valor é obrigatório</string>
-    <string name="total_balance">Saldo Total: %s</string>
+    <string name="total_balance">Saldo Total</string>
     <string name="no_entries">Nenhuma entrada encontrada.</string>
     <string name="back">Voltar</string>
     <string name="delete">Excluir</string>

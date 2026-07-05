@@ -23,6 +23,9 @@ class StatementViewModel(private val repository: EntryRepository) : ViewModel() 
     var balance by mutableStateOf(0.0)
         private set
 
+    var isLoading by mutableStateOf(true)
+        private set
+
     private val _uiEvent = MutableSharedFlow<StatementUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
@@ -32,8 +35,10 @@ class StatementViewModel(private val repository: EntryRepository) : ViewModel() 
 
     private fun loadData() {
         viewModelScope.launch {
+            isLoading = true
             entries = repository.getAllEntries()
             balance = repository.getBalance()
+            isLoading = false
         }
     }
 

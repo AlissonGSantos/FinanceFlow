@@ -5,21 +5,36 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +44,10 @@ import br.edu.utfpr.financeflow.FinanceFlowApplication
 import br.edu.utfpr.financeflow.R
 import br.edu.utfpr.financeflow.model.Entry
 import br.edu.utfpr.financeflow.model.EntryType
+import br.edu.utfpr.financeflow.ui.theme.ExpenseColor
+import br.edu.utfpr.financeflow.ui.theme.ExpenseContainerColor
+import br.edu.utfpr.financeflow.ui.theme.IncomeColor
+import br.edu.utfpr.financeflow.ui.theme.IncomeContainerColor
 import br.edu.utfpr.financeflow.viewmodel.StatementViewModel
 import br.edu.utfpr.financeflow.viewmodel.StatementViewModelFactory
 import java.text.NumberFormat
@@ -44,66 +63,105 @@ fun StatementScreen(
     val repository = (context.applicationContext as FinanceFlowApplication).repository
     val viewModel: StatementViewModel = viewModel(factory = StatementViewModelFactory(repository))
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Row(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(R.string.statement),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(innerPadding)
+                .fillMaxSize()
         ) {
-            Button(
-                onClick = onNavigateBack, modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
-                Text(stringResource(R.string.back),
-                    style = MaterialTheme.typography.titleLarge)
-            }
             if (viewModel.entries.isNotEmpty()) {
                 BalanceHeader(viewModel.balance)
             }
-        }
 
-        if (viewModel.entries.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-            ) {
-                Text(text = stringResource(R.string.no_entries))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(viewModel.entries) { entry ->
-                    EntryItem(entry)
+            if (viewModel.entries.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.no_entries),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(viewModel.entries) { entry ->
+                        EntryItem(entry)
+                    }
                 }
             }
         }
     }
 }
 
-
 @Composable
 fun BalanceHeader(balance: Double) {
     val currencyFormat = NumberFormat.getCurrencyInstance()
+    val balanceColor = if (balance >= 0) IncomeColor else ExpenseColor
+
     Card(
-        modifier = Modifier, colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.total_balance, currencyFormat.format(balance)),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+                text = "Saldo Atual",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = currencyFormat.format(balance),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = balanceColor
             )
         }
     }
@@ -113,32 +171,52 @@ fun BalanceHeader(balance: Double) {
 fun EntryItem(entry: Entry) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
     val currencyFormat = NumberFormat.getCurrencyInstance()
-    val color = if (entry.type == EntryType.INCOME) Color(0xFF2E7D32) else Color(0xFFC62828)
-    val prefix = if (entry.type == EntryType.INCOME) "+" else "-"
+    val isIncome = entry.type == EntryType.INCOME
+    val color = if (isIncome) IncomeColor else ExpenseColor
+    val containerColor = if (isIncome) IncomeContainerColor else ExpenseContainerColor
+    val icon = if (isIncome) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+    val prefix = if (isIncome) "+" else "-"
 
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Surface(
+                shape = CircleShape,
+                color = containerColor.copy(alpha = 0.3f),
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entry.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = entry.date.format(dateFormatter),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
             Text(
                 text = "$prefix ${currencyFormat.format(entry.amount)}",
                 style = MaterialTheme.typography.titleMedium,
